@@ -1,4 +1,4 @@
-module github.com/anycable/anycable-go
+module github.com/coingecko/anycable-go
 
 go 1.23
 

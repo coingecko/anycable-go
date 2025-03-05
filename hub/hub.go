@@ -257,13 +257,22 @@ func (h *Hub) UnsubscribeSessionFromChannel(session HubSession, targetIdentifier
 	sid := session.GetID()
 
 	if sessionInfo, ok := h.sessions[sid]; ok {
+		// First, collect all streams that need to be removed
+		streamsToRemove := make([][]string, 0)
+
 		for _, streamInfo := range sessionInfo.streams {
 			stream, identifier := streamInfo[0], streamInfo[1]
 
 			if targetIdentifier == identifier {
-				h.gates[index(stream, h.gatesNum)].Unsubscribe(session, stream, identifier)
-				sessionInfo.RemoveStream(stream, identifier)
+				streamsToRemove = append(streamsToRemove, []string{stream, identifier})
 			}
+		}
+
+		// Now remove each stream in a separate loop to avoid modifying the slice during iteration
+		for _, streamToRemove := range streamsToRemove {
+			stream, identifier := streamToRemove[0], streamToRemove[1]
+			h.gates[index(stream, h.gatesNum)].Unsubscribe(session, stream, identifier)
+			sessionInfo.RemoveStream(stream, identifier)
 		}
 	}
 
